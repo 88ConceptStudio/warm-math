@@ -1,4 +1,5 @@
 from flask import Flask, render_template, request
+import os
 
 app = Flask(__name__)
 
@@ -45,7 +46,6 @@ def home():
                         't_in': float(request.form.get('t_in_prev', '0') or 0),
                         'building_type': request.form.get('building_type_prev', '')
                     }
-                    # Obliczenia dla CO
                     u_values = {
                         'Mieszkanie': 0.5,
                         'Dom': 0.8,
@@ -55,14 +55,14 @@ def home():
                     }
                     u = u_values.get(co_data['building_type'], 1.0)
                     delta_t = co_data['t_in'] - co_data['t_out']
-                    q = u * co_data['m3'] * delta_t * calc_data['simultaneity'] / calc_data['efficiency'] / 1000  # Przelicz na kW
+                    q = u * co_data['m3'] * delta_t * calc_data['simultaneity'] / calc_data['efficiency'] / 1000
                     results = {
                         'heat_hour': round(q, 2),
                         'heat_day': round(q * 24, 2),
-                        'heat_year': round(q * 24 * 180, 2),  # Rok opałowy: 180 dni
+                        'heat_year': round(q * 24 * 180, 2),
                         'gas_hour': round(q / calc_data['kw_m3'], 2),
                         'gas_day': round((q * 24) / calc_data['kw_m3'], 2),
-                        'gas_year': round((q * 24 * 180) / calc_data['kw_m3'], 2)  # Rok opałowy: 180 dni
+                        'gas_year': round((q * 24 * 180) / calc_data['kw_m3'], 2)
                     }
                 except ValueError:
                     error = "Wprowadź poprawne liczby w formularzu wskaźników dla CO!"
@@ -92,19 +92,19 @@ def home():
                         't_wu': float(request.form.get('t_wu_prev', '0') or 0),
                         'building_type': request.form.get('building_type_prev', '')
                     }
-                    # Obliczenia dla CWU
-                    q = cwu_data['people'] * 50 * (cwu_data['t_wu'] - 10) * calc_data['simultaneity'] / calc_data['efficiency'] / 1000  # Przelicz na kW
+                    q = cwu_data['people'] * 50 * (cwu_data['t_wu'] - 10) * calc_data['simultaneity'] / calc_data['efficiency'] / 1000
                     results = {
                         'heat_hour': round(q / 24, 2),
                         'heat_day': round(q, 2),
-                        'heat_year': round(q * 365, 2),  # Pełny rok: 365 dni
+                        'heat_year': round(q * 365, 2),
                         'gas_hour': round((q / 24) / calc_data['kw_m3'], 2),
                         'gas_day': round(q / calc_data['kw_m3'], 2),
-                        'gas_year': round((q * 365) / calc_data['kw_m3'], 2)  # Pełny rok: 365 dni
+                        'gas_year': round((q * 365) / calc_data['kw_m3'], 2)
                     }
                 except ValueError:
                     error = "Wprowadź poprawne liczby w formularzu wskaźników dla CWU!"
     return render_template('index.html', choice=choice, co_data=co_data, cwu_data=cwu_data, calc_data=calc_data, results=results, show_calc_form=show_calc_form, error=error)
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port, debug=True)
