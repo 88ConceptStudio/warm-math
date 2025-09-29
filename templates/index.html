@@ -8,7 +8,7 @@
             font-family: 'Questrial', sans-serif; 
             text-align: center; 
             margin: 0 auto; 
-            max-width: 800px; 
+            max-width: 1200px; 
         }
         h1 { font-size: 36px; }
         h2 { font-size: 28px; }
@@ -34,19 +34,31 @@
             height: 40px; 
             font-family: 'Questrial', sans-serif; 
             border: 2px solid #000; 
+            margin: 10px; 
         }
-        .results-container {
+        .results-container, .fuel-values-container {
             display: flex;
             justify-content: center;
-            gap: 50px;
+            gap: 20px;
             margin-top: 20px;
+            flex-wrap: nowrap;
+            width: 100%;
         }
-        .results-column {
-            width: 45%;
+        .results-column, .fuel-values-column {
+            flex: 1;
+            width: 20%;
+            min-width: 160px;
+            max-width: 20%;
+            box-sizing: border-box;
+            padding: 10px;
         }
-        .results-column h4 {
+        .results-column h4, .fuel-values-column h4 {
+            font-size: 26px;
+            margin-bottom: 12px;
+        }
+        .results-column p, .fuel-values-column p {
             font-size: 24px;
-            margin-bottom: 10px;
+            margin: 8px 0;
         }
         .error {
             color: red;
@@ -58,7 +70,7 @@
 <body>
     <h1>WARM-MATH</h1>
     {% if error %}
-    <p class="error">{{ error }}</p>
+        <p class="error">{{ error }}</p>
     {% endif %}
     <form method="POST">
         <div class="form-group">
@@ -70,191 +82,366 @@
             </select>
         </div>
         <input type="submit" value="Dalej">
+        <input type="submit" name="reset" value="Nowe">
     </form>
 
     {% if choice == 'CO' and not show_calc_form %}
-    <h2>CO - założenia</h2>
-    <form method="POST">
-        <input type="hidden" name="choice" value="CO">
-        <div class="form-group">
-            <label>Powierzchnia [m²]:</label>
-            <input type="number" name="m2" step="any" placeholder="np. 100" id="m2" value="{{ co_data.m2 }}">
-        </div>
-        <div class="form-group">
-            <label>Wysokość [m]:</label>
-            <input type="number" name="h" step="any" placeholder="np. 3" id="h" value="{{ co_data.h }}">
-        </div>
-        <div class="form-group">
-            <label>Kubatura [m³]:</label>
-            <input type="number" name="m3" step="any" placeholder="np. 300" id="m3" value="{{ co_data.m3 }}">
-        </div>
-        <div class="form-group">
-            <label>Temp-OUT [°C]:</label>
-            <input type="number" name="t_out" step="any" placeholder="np. -20" value="{{ co_data.t_out }}">
-        </div>
-        <div class="form-group">
-            <label>Temp-IN [°C]:</label>
-            <input type="number" name="t_in" step="any" placeholder="np. 20" value="{{ co_data.t_in }}">
-        </div>
-        <div class="form-group">
-            <label>Typ budynku:</label>
-            <select name="building_type">
-                <option value="">Wybierz...</option>
-                <option value="Mieszkanie" {% if co_data.building_type == 'Mieszkanie' %}selected{% endif %}>Mieszkanie</option>
-                <option value="Dom" {% if co_data.building_type == 'Dom' %}selected{% endif %}>Dom</option>
-                <option value="Magazyn" {% if co_data.building_type == 'Magazyn' %}selected{% endif %}>Magazyn</option>
-                <option value="Biurowiec" {% if co_data.building_type == 'Biurowiec' %}selected{% endif %}>Biurowiec</option>
-                <option value="Obiekt" {% if co_data.building_type == 'Obiekt' %}selected{% endif %}>Obiekt</option>
-            </select>
-        </div>
-        <input type="submit" value="Wyślij">
-    </form>
-    <script>
-        const m2Input = document.querySelector('#m2');
-        const hInput = document.querySelector('#h');
-        const m3Input = document.querySelector('#m3');
+        <h2>CO - założenia</h2>
+        <form method="POST">
+            <input type="hidden" name="choice" value="CO">
+            <div class="form-group">
+                <label>Powierzchnia [m²]:</label>
+                <input type="number" name="m2" step="any" placeholder="np. 100" id="m2" value="{{ co_data.get('m2', '') }}">
+            </div>
+            <div class="form-group">
+                <label>Wysokość [m]:</label>
+                <input type="number" name="h" step="any" placeholder="np. 3" id="h" value="{{ co_data.get('h', '') }}">
+            </div>
+            <div class="form-group">
+                <label>Kubatura [m³]:</label>
+                <input type="number" name="m3" step="any" placeholder="np. 300" id="m3" value="{{ co_data.get('m3', '') }}">
+            </div>
+            <div class="form-group">
+                <label>Temp-OUT [°C]:</label>
+                <input type="number" name="t_out" step="any" placeholder="np. -20" value="{{ co_data.get('t_out', '') }}">
+            </div>
+            <div class="form-group">
+                <label>Temp-IN [°C]:</label>
+                <input type="number" name="t_in" step="any" placeholder="np. 20" value="{{ co_data.get('t_in', '') }}">
+            </div>
+            <div class="form-group">
+                <label>Typ budynku:</label>
+                <select name="building_type">
+                    <option value="">Wybierz...</option>
+                    <option value="Mieszkanie" {% if co_data.get('building_type') == 'Mieszkanie' %}selected{% endif %}>Mieszkanie</option>
+                    <option value="Dom" {% if co_data.get('building_type') == 'Dom' %}selected{% endif %}>Dom</option>
+                    <option value="Magazyn" {% if co_data.get('building_type') == 'Magazyn' %}selected{% endif %}>Magazyn</option>
+                    <option value="Biurowiec" {% if co_data.get('building_type') == 'Biurowiec' %}selected{% endif %}>Biurowiec</option>
+                    <option value="Obiekt" {% if co_data.get('building_type') == 'Obiekt' %}selected{% endif %}>Obiekt</option>
+                </select>
+            </div>
+            <input type="submit" value="Wyślij">
+            <input type="submit" name="reset" value="Nowe">
+        </form>
+        <script>
+            const m2Input = document.querySelector('#m2');
+            const hInput = document.querySelector('#h');
+            const m3Input = document.querySelector('#m3');
 
-        m2Input.addEventListener('input', updateFields);
-        hInput.addEventListener('input', updateFields);
-        m3Input.addEventListener('input', updateFields);
+            m2Input.addEventListener('input', updateFields);
+            hInput.addEventListener('input', updateFields);
+            m3Input.addEventListener('input', updateFields);
 
-        function updateFields() {
-            let m2 = parseFloat(m2Input.value) || 0;
-            let h = parseFloat(hInput.value) || 0;
-            let m3 = parseFloat(m3Input.value) || 0;
+            function updateFields() {
+                let m2 = parseFloat(m2Input.value) || 0;
+                let h = parseFloat(hInput.value) || 0;
+                let m3 = parseFloat(m3Input.value) || 0;
 
-            let filledCount = [m2, h, m3].filter(val => val > 0).length;
+                let filledCount = [m2, h, m3].filter(val => val > 0).length;
 
-            if (filledCount === 2) {
-                if (m2 && h && !m3Input.value) {
-                    m3Input.value = (m2 * h).toFixed(2);
-                } else if (m2 && m3 && !hInput.value) {
-                    hInput.value = m2 ? (m3 / m2).toFixed(2) : '';
-                } else if (h && m3 && !m2Input.value) {
-                    m2Input.value = h ? (m3 / h).toFixed(2) : '';
+                if (filledCount === 2) {
+                    if (m2 && h && !m3Input.value) {
+                        m3Input.value = (m2 * h).toFixed(2);
+                    } else if (m2 && m3 && !hInput.value) {
+                        hInput.value = m2 ? (m3 / m2).toFixed(2) : '';
+                    } else if (h && m3 && !m2Input.value) {
+                        m2Input.value = h ? (m3 / h).toFixed(2) : '';
+                    }
                 }
             }
-        }
-    </script>
+        </script>
     {% endif %}
 
     {% if choice == 'CWU' and not show_calc_form %}
-    <h2>CWU - założenia</h2>
-    <form method="POST">
-        <input type="hidden" name="choice" value="CWU">
-        <div class="form-group">
-            <label>Liczba osób:</label>
-            <input type="number" name="people" step="1" placeholder="np. 4" value="{{ cwu_data.people }}">
-        </div>
-        <div class="form-group">
-            <label>Temp-WU [°C]:</label>
-            <input type="number" name="t_wu" step="any" placeholder="np. 40" value="{{ cwu_data.t_wu }}">
-        </div>
-        <div class="form-group">
-            <label>Typ budynku:</label>
-            <select name="building_type">
-                <option value="">Wybierz...</option>
-                <option value="Mieszkanie" {% if cwu_data.building_type == 'Mieszkanie' %}selected{% endif %}>Mieszkanie</option>
-                <option value="Dom" {% if cwu_data.building_type == 'Dom' %}selected{% endif %}>Dom</option>
-                <option value="Magazyn" {% if cwu_data.building_type == 'Magazyn' %}selected{% endif %}>Magazyn</option>
-                <option value="Biurowiec" {% if cwu_data.building_type == 'Biurowiec' %}selected{% endif %}>Biurowiec</option>
-                <option value="Obiekt" {% if cwu_data.building_type == 'Obiekt' %}selected{% endif %}>Obiekt</option>
-            </select>
-        </div>
-        <input type="submit" value="Wyślij">
-    </form>
+        <h2>CWU - założenia</h2>
+        <form method="POST">
+            <input type="hidden" name="choice" value="CWU">
+            <div class="form-group">
+                <label>Liczba osób:</label>
+                <input type="number" name="people" step="1" placeholder="np. 4" value="{{ cwu_data.get('people', '') }}">
+            </div>
+            <div class="form-group">
+                <label>Temp-WU [°C]:</label>
+                <input type="number" name="t_wu" step="any" placeholder="np. 40" value="{{ cwu_data.get('t_wu', '') }}">
+            </div>
+            <div class="form-group">
+                <label>Typ budynku:</label>
+                <select name="building_type">
+                    <option value="">Wybierz...</option>
+                    <option value="Mieszkanie" {% if cwu_data.get('building_type') == 'Mieszkanie' %}selected{% endif %}>Mieszkanie</option>
+                    <option value="Dom" {% if cwu_data.get('building_type') == 'Dom' %}selected{% endif %}>Dom</option>
+                    <option value="Magazyn" {% if cwu_data.get('building_type') == 'Magazyn' %}selected{% endif %}>Magazyn</option>
+                    <option value="Biurowiec" {% if cwu_data.get('building_type') == 'Biurowiec' %}selected{% endif %}>Biurowiec</option>
+                    <option value="Obiekt" {% if cwu_data.get('building_type') == 'Obiekt' %}selected{% endif %}>Obiekt</option>
+                </select>
+            </div>
+            <input type="submit" value="Wyślij">
+            <input type="submit" name="reset" value="Nowe">
+        </form>
     {% endif %}
 
     {% if show_calc_form %}
-    <h2>{{ choice }} - wskaźniki</h2>
-    <form method="POST">
-        <input type="hidden" name="choice" value="{{ choice }}">
-        {% if choice == 'CO' %}
-        <input type="hidden" name="m2_prev" value="{{ co_data.m2 }}">
-        <input type="hidden" name="h_prev" value="{{ co_data.h }}">
-        <input type="hidden" name="m3_prev" value="{{ co_data.m3 }}">
-        <input type="hidden" name="t_out_prev" value="{{ co_data.t_out }}">
-        <input type="hidden" name="t_in_prev" value="{{ co_data.t_in }}">
-        <input type="hidden" name="building_type_prev" value="{{ co_data.building_type }}">
-        {% endif %}
-        {% if choice == 'CWU' %}
-        <input type="hidden" name="people_prev" value="{{ cwu_data.people }}">
-        <input type="hidden" name="t_wu_prev" value="{{ cwu_data.t_wu }}">
-        <input type="hidden" name="building_type_prev" value="{{ cwu_data.building_type }}">
-        {% endif %}
-        <div class="form-group">
-            <label>Wartość opałowa gazu [kW/m³]:</label>
-            <input type="number" name="kw_m3" step="any" value="10.5" min="9" max="11">
-        </div>
-        <div class="form-group">
-            <label>Sprawność kotła [%]:</label>
-            <input type="number" name="efficiency" step="any" value="100" min="10" max="150">
-        </div>
-        <div class="form-group">
-            <label>Jednoczesność:</label>
-            <input type="number" name="simultaneity" step="any" value="1" min="0.1" max="1">
-        </div>
-        <input type="submit" value="Wyślij">
-    </form>
+        <h2>{{ choice }} - wskaźniki</h2>
+        <form method="POST">
+            <input type="hidden" name="choice" value="{{ choice }}">
+            {% if choice == 'CO' %}
+                <input type="hidden" name="m2_prev" value="{{ co_data.get('m2', '') }}">
+                <input type="hidden" name="h_prev" value="{{ co_data.get('h', '') }}">
+                <input type="hidden" name="m3_prev" value="{{ co_data.get('m3', '') }}">
+                <input type="hidden" name="t_out_prev" value="{{ co_data.get('t_out', '') }}">
+                <input type="hidden" name="t_in_prev" value="{{ co_data.get('t_in', '') }}">
+                <input type="hidden" name="building_type_prev" value="{{ co_data.get('building_type', '') }}">
+            {% endif %}
+            {% if choice == 'CWU' %}
+                <input type="hidden" name="people_prev" value="{{ cwu_data.get('people', '') }}">
+                <input type="hidden" name="t_wu_prev" value="{{ cwu_data.get('t_wu', '') }}">
+                <input type="hidden" name="building_type_prev" value="{{ cwu_data.get('building_type', '') }}">
+            {% endif %}
+            <div class="form-group">
+                <label>Wartość opałowa gazu [kW/m³]:</label>
+                <input type="number" name="kw_m3" step="any" value="{{ calc_data.get('kw_m3', '10.5') }}" min="0" max="11">
+            </div>
+            <div class="form-group">
+                <label>Wartość opałowa węgla [MJ/kg]:</label>
+                <input type="number" name="coal_mj_kg" step="any" value="{{ calc_data.get('coal_mj_kg', '25') }}" min="0" max="30">
+            </div>
+            <div class="form-group">
+                <label>Wartość opałowa drewna [MJ/kg]:</label>
+                <input type="number" name="wood_mj_kg" step="any" value="{{ calc_data.get('wood_mj_kg', '15') }}" min="0" max="18">
+            </div>
+            <div class="form-group">
+                <label>Wartość opałowa oleju [MJ/l]:</label>
+                <input type="number" name="oil_mj_l" step="any" value="{{ calc_data.get('oil_mj_l', '38') }}" min="0" max="42">
+            </div>
+            <div class="form-group">
+                <label>Wartość opałowa inne [MJ]:</label>
+                <input type="number" name="other_mj" step="any" value="{{ calc_data.get('other_mj', '0') }}" min="0">
+            </div>
+            <div class="form-group">
+                <label>Sprawność kotła [%]:</label>
+                <input type="number" name="efficiency" step="any" value="{{ calc_data.get('efficiency', '100') }}" min="10" max="150">
+            </div>
+            <div class="form-group">
+                <label>Jednoczesność:</label>
+                <input type="number" name="simultaneity" step="any" value="{{ calc_data.get('simultaneity', '1') }}" min="0.1" max="1">
+            </div>
+            <input type="submit" value="Wyślij">
+            <input type="submit" name="reset" value="Nowe">
+        </form>
     {% endif %}
 
-    {% if choice == 'CO' and (co_data.m2 or co_data.h or co_data.m3) %}
-    <h3>CO - założenia</h3>
-    <p>Powierzchnia: {{ co_data.m2 }} [m²]</p>
-    <p>Wysokość: {{ co_data.h }} [m]</p>
-    <p>Kubatura: {{ co_data.m3 }} [m³]</p>
-    <p>Temp-OUT: {{ co_data.t_out }} [°C]</p>
-    <p>Temp-IN: {{ co_data.t_in }} [°C]</p>
-    <p>Typ budynku: {{ co_data.building_type }}</p>
-    {% if calc_data.kw_m3 %}
-    <p>Wartość opałowa gazu: {{ calc_data.kw_m3 }} [kW/m³]</p>
-    <p>Sprawność kotła: {{ calc_data.efficiency * 100 }} [%]</p>
-    <p>Jednoczesność: {{ calc_data.simultaneity }}</p>
-    {% if results.heat_hour is not none %}
-    <div class="results-container">
-        <div class="results-column">
-            <h4>Wartości ciepła</h4>
-            <p>Ciepło na godzinę: {{ results.heat_hour }} [kW/h]</p>
-            <p>Ciepło na dobę (24h): {{ results.heat_day }} [kW/d]</p>
-            <p>Ciepło na rok (180d): {{ results.heat_year }} [kW/r]</p>
-        </div>
-        <div class="results-column">
-            <h4>Wartości zużytego gazu</h4>
-            <p>Gaz na godzinę: {{ results.gas_hour }} [m³/h]</p>
-            <p>Gaz na dobę (24h): {{ results.gas_day }} [m³/d]</p>
-            <p>Gaz na rok (180d): {{ results.gas_year }} [m³/r]</p>
-        </div>
-    </div>
-    {% endif %}
-    {% endif %}
+    {% if choice == 'CO' and co_data.get('m2') %}
+        <h3>CO - założenia</h3>
+        <p>Powierzchnia: {{ co_data.get('m2', '') }} [m²]</p>
+        <p>Wysokość: {{ co_data.get('h', '') }} [m]</p>
+        <p>Kubatura: {{ co_data.get('m3', '') }} [m³]</p>
+        <p>Temp-OUT: {{ co_data.get('t_out', '') }} [°C]</p>
+        <p>Temp-IN: {{ co_data.get('t_in', '') }} [°C]</p>
+        <p>Typ budynku: {{ co_data.get('building_type', '') }}</p>
+        {% if calc_data %}
+            <div class="fuel-values-container">
+                <div class="fuel-values-column">
+                    <h4>Olej</h4>
+                    <p>Wartość opałowa: {{ calc_data.get('oil_mj_l', 0) }} [MJ/l]</p>
+                </div>
+                <div class="fuel-values-column">
+                    <h4>Inne</h4>
+                    <p>Wartość opałowa: {{ calc_data.get('other_mj', 0) }} [MJ]</p>
+                </div>
+                <div class="fuel-values-column">
+                    <h4>Gaz</h4>
+                    <p>Wartość opałowa: {{ calc_data.get('kw_m3', 0) }} [kW/m³]</p>
+                </div>
+                <div class="fuel-values-column">
+                    <h4>Węgiel</h4>
+                    <p>Wartość opałowa: {{ calc_data.get('coal_mj_kg', 0) }} [MJ/kg]</p>
+                </div>
+                <div class="fuel-values-column">
+                    <h4>Drewno</h4>
+                    <p>Wartość opałowa: {{ calc_data.get('wood_mj_kg', 0) }} [MJ/kg]</p>
+                </div>
+            </div>
+            <p>Sprawność kotła: {{ calc_data.get('efficiency', 100)|float }} [%]</p>
+            <p>Jednoczesność: {{ calc_data.get('simultaneity', 1) }}</p>
+            {% if results %}
+                <form method="POST">
+                    <input type="hidden" name="choice" value="{{ choice }}">
+                    <input type="hidden" name="m2_prev" value="{{ co_data.get('m2', '') }}">
+                    <input type="hidden" name="h_prev" value="{{ co_data.get('h', '') }}">
+                    <input type="hidden" name="m3_prev" value="{{ co_data.get('m3', '') }}">
+                    <input type="hidden" name="t_out_prev" value="{{ co_data.get('t_out', '') }}">
+                    <input type="hidden" name="t_in_prev" value="{{ co_data.get('t_in', '') }}">
+                    <input type="hidden" name="building_type_prev" value="{{ co_data.get('building_type', '') }}">
+                    <input type="hidden" name="kw_m3" value="{{ calc_data.get('kw_m3', '') }}">
+                    <input type="hidden" name="coal_mj_kg" value="{{ calc_data.get('coal_mj_kg', '') }}">
+                    <input type="hidden" name="wood_mj_kg" value="{{ calc_data.get('wood_mj_kg', '') }}">
+                    <input type="hidden" name="oil_mj_l" value="{{ calc_data.get('oil_mj_l', '') }}">
+                    <input type="hidden" name="other_mj" value="{{ calc_data.get('other_mj', '') }}">
+                    <input type="hidden" name="efficiency" value="{{ calc_data.get('efficiency', '') }}">
+                    <input type="hidden" name="simultaneity" value="{{ calc_data.get('simultaneity', '') }}">
+                    <input type="hidden" name="heat_hour" value="{{ results.get('heat_hour', '') }}">
+                    <input type="hidden" name="heat_day" value="{{ results.get('heat_day', '') }}">
+                    <input type="hidden" name="heat_year" value="{{ results.get('heat_year', '') }}">
+                    <input type="hidden" name="gas_hour" value="{{ results.get('gas_hour', '') }}">
+                    <input type="hidden" name="gas_day" value="{{ results.get('gas_day', '') }}">
+                    <input type="hidden" name="gas_year" value="{{ results.get('gas_year', '') }}">
+                    <input type="hidden" name="coal_hour" value="{{ results.get('coal_hour', '') }}">
+                    <input type="hidden" name="coal_day" value="{{ results.get('coal_day', '') }}">
+                    <input type="hidden" name="coal_year" value="{{ results.get('coal_year', '') }}">
+                    <input type="hidden" name="wood_hour" value="{{ results.get('wood_hour', '') }}">
+                    <input type="hidden" name="wood_day" value="{{ results.get('wood_day', '') }}">
+                    <input type="hidden" name="wood_year" value="{{ results.get('wood_year', '') }}">
+                    <input type="hidden" name="oil_hour" value="{{ results.get('oil_hour', '') }}">
+                    <input type="hidden" name="oil_day" value="{{ results.get('oil_day', '') }}">
+                    <input type="hidden" name="oil_year" value="{{ results.get('oil_year', '') }}">
+                    <input type="hidden" name="other_hour" value="{{ results.get('other_hour', '') }}">
+                    <input type="hidden" name="other_day" value="{{ results.get('other_day', '') }}">
+                    <input type="hidden" name="other_year" value="{{ results.get('other_year', '') }}">
+                    <input type="submit" name="print" value="Drukuj">
+                    <input type="submit" name="reset" value="Nowe">
+                </form>
+                <div class="results-container">
+                    <div class="results-column">
+                        <h4>Olej</h4>
+                        <p>godzina: {{ results.get('oil_hour', 0) }} [l/h]</p>
+                        <p>doba (24h): {{ results.get('oil_day', 0) }} [l/d]</p>
+                        <p>rok ({{ '180d' if choice == 'CO' else '365d' }}): {{ results.get('oil_year', 0) }} [l/r]</p>
+                    </div>
+                    <div class="results-column">
+                        <h4>Inne</h4>
+                        <p>godzina: {{ results.get('other_hour', 0) }} [jedn/h]</p>
+                        <p>doba (24h): {{ results.get('other_day', 0) }} [jedn/d]</p>
+                        <p>rok ({{ '180d' if choice == 'CO' else '365d' }}): {{ results.get('other_year', 0) }} [jedn/r]</p>
+                    </div>
+                    <div class="results-column">
+                        <h4>Gaz</h4>
+                        <p>godzina: {{ results.get('gas_hour', 0) }} [m³/h]</p>
+                        <p>doba (24h): {{ results.get('gas_day', 0) }} [m³/d]</p>
+                        <p>rok ({{ '180d' if choice == 'CO' else '365d' }}): {{ results.get('gas_year', 0) }} [m³/r]</p>
+                        <h4>Wartości ciepła</h4>
+                        <p>godzina: {{ results.get('heat_hour', 0) }} [kW/h]</p>
+                        <p>doba (24h): {{ results.get('heat_day', 0) }} [kW/d]</p>
+                        <p>rok ({{ '180d' if choice == 'CO' else '365d' }}): {{ results.get('heat_year', 0) }} [kW/r]</p>
+                    </div>
+                    <div class="results-column">
+                        <h4>Węgiel</h4>
+                        <p>godzina: {{ results.get('coal_hour', 0) }} [kg/h]</p>
+                        <p>doba (24h): {{ results.get('coal_day', 0) }} [kg/d]</p>
+                        <p>rok ({{ '180d' if choice == 'CO' else '365d' }}): {{ results.get('coal_year', 0) }} [kg/r]</p>
+                    </div>
+                    <div class="results-column">
+                        <h4>Drewno</h4>
+                        <p>godzina: {{ results.get('wood_hour', 0) }} [kg/h]</p>
+                        <p>doba (24h): {{ results.get('wood_day', 0) }} [kg/d]</p>
+                        <p>rok ({{ '180d' if choice == 'CO' else '365d' }}): {{ results.get('wood_year', 0) }} [kg/r]</p>
+                    </div>
+                </div>
+            {% endif %}
+        {% endif %}
     {% endif %}
 
-    {% if choice == 'CWU' and cwu_data.people %}
-    <h3>CWU - założenia</h3>
-    <p>Liczba osób: {{ cwu_data.people }}</p>
-    <p>Temp-WU: {{ cwu_data.t_wu }} [°C]</p>
-    <p>Typ budynku: {{ cwu_data.building_type }}</p>
-    {% if calc_data.kw_m3 %}
-    <p>Wartość opałowa gazu: {{ calc_data.kw_m3 }} [kW/m³]</p>
-    <p>Sprawność kotła: {{ calc_data.efficiency * 100 }} [%]</p>
-    <p>Jednoczesność: {{ calc_data.simultaneity }}</p>
-    {% if results.heat_hour is not none %}
-    <div class="results-container">
-        <div class="results-column">
-            <h4>Wartości ciepła</h4>
-            <p>Ciepło na godzinę: {{ results.heat_hour }} [kW/h]</p>
-            <p>Ciepło na dobę (24h): {{ results.heat_day }} [kW/d]</p>
-            <p>Ciepło na rok (365d): {{ results.heat_year }} [kW/r]</p>
-        </div>
-        <div class="results-column">
-            <h4>Wartości zużytego gazu</h4>
-            <p>Gaz na godzinę: {{ results.gas_hour }} [m³/h]</p>
-            <p>Gaz na dobę (24h): {{ results.gas_day }} [m³/d]</p>
-            <p>Gaz na rok (365d): {{ results.gas_year }} [m³/r]</p>
-        </div>
-    </div>
-    {% endif %}
-    {% endif %}
+    {% if choice == 'CWU' and cwu_data.get('people') %}
+        <h3>CWU - założenia</h3>
+        <p>Liczba osób: {{ cwu_data.get('people', '') }}</p>
+        <p>Temp-WU: {{ cwu_data.get('t_wu', '') }} [°C]</p>
+        <p>Typ budynku: {{ cwu_data.get('building_type', '') }}</p>
+        {% if calc_data %}
+            <div class="fuel-values-container">
+                <div class="fuel-values-column">
+                    <h4>Olej</h4>
+                    <p>Wartość opałowa: {{ calc_data.get('oil_mj_l', 0) }} [MJ/l]</p>
+                </div>
+                <div class="fuel-values-column">
+                    <h4>Inne</h4>
+                    <p>Wartość opałowa: {{ calc_data.get('other_mj', 0) }} [MJ]</p>
+                </div>
+                <div class="fuel-values-column">
+                    <h4>Gaz</h4>
+                    <p>Wartość opałowa: {{ calc_data.get('kw_m3', 0) }} [kW/m³]</p>
+                </div>
+                <div class="fuel-values-column">
+                    <h4>Węgiel</h4>
+                    <p>Wartość opałowa: {{ calc_data.get('coal_mj_kg', 0) }} [MJ/kg]</p>
+                </div>
+                <div class="fuel-values-column">
+                    <h4>Drewno</h4>
+                    <p>Wartość opałowa: {{ calc_data.get('wood_mj_kg', 0) }} [MJ/kg]</p>
+                </div>
+            </div>
+            <p>Sprawność kotła: {{ calc_data.get('efficiency', 100)|float }} [%]</p>
+            <p>Jednoczesność: {{ calc_data.get('simultaneity', 1) }}</p>
+            {% if results %}
+                <form method="POST">
+                    <input type="hidden" name="choice" value="{{ choice }}">
+                    <input type="hidden" name="people_prev" value="{{ cwu_data.get('people', '') }}">
+                    <input type="hidden" name="t_wu_prev" value="{{ cwu_data.get('t_wu', '') }}">
+                    <input type="hidden" name="building_type_prev" value="{{ cwu_data.get('building_type', '') }}">
+                    <input type="hidden" name="kw_m3" value="{{ calc_data.get('kw_m3', '') }}">
+                    <input type="hidden" name="coal_mj_kg" value="{{ calc_data.get('coal_mj_kg', '') }}">
+                    <input type="hidden" name="wood_mj_kg" value="{{ calc_data.get('wood_mj_kg', '') }}">
+                    <input type="hidden" name="oil_mj_l" value="{{ calc_data.get('oil_mj_l', '') }}">
+                    <input type="hidden" name="other_mj" value="{{ calc_data.get('other_mj', '') }}">
+                    <input type="hidden" name="efficiency" value="{{ calc_data.get('efficiency', '') }}">
+                    <input type="hidden" name="simultaneity" value="{{ calc_data.get('simultaneity', '') }}">
+                    <input type="hidden" name="heat_hour" value="{{ results.get('heat_hour', '') }}">
+                    <input type="hidden" name="heat_day" value="{{ results.get('heat_day', '') }}">
+                    <input type="hidden" name="heat_year" value="{{ results.get('heat_year', '') }}">
+                    <input type="hidden" name="gas_hour" value="{{ results.get('gas_hour', '') }}">
+                    <input type="hidden" name="gas_day" value="{{ results.get('gas_day', '') }}">
+                    <input type="hidden" name="gas_year" value="{{ results.get('gas_year', '') }}">
+                    <input type="hidden" name="coal_hour" value="{{ results.get('coal_hour', '') }}">
+                    <input type="hidden" name="coal_day" value="{{ results.get('coal_day', '') }}">
+                    <input type="hidden" name="coal_year" value="{{ results.get('coal_year', '') }}">
+                    <input type="hidden" name="wood_hour" value="{{ results.get('wood_hour', '') }}">
+                    <input type="hidden" name="wood_day" value="{{ results.get('wood_day', '') }}">
+                    <input type="hidden" name="wood_year" value="{{ results.get('wood_year', '') }}">
+                    <input type="hidden" name="oil_hour" value="{{ results.get('oil_hour', '') }}">
+                    <input type="hidden" name="oil_day" value="{{ results.get('oil_day', '') }}">
+                    <input type="hidden" name="oil_year" value="{{ results.get('oil_year', '') }}">
+                    <input type="hidden" name="other_hour" value="{{ results.get('other_hour', '') }}">
+                    <input type="hidden" name="other_day" value="{{ results.get('other_day', '') }}">
+                    <input type="hidden" name="other_year" value="{{ results.get('other_year', '') }}">
+                    <input type="submit" name="print" value="Drukuj">
+                    <input type="submit" name="reset" value="Nowe">
+                </form>
+                <div class="results-container">
+                    <div class="results-column">
+                        <h4>Olej</h4>
+                        <p>godzina: {{ results.get('oil_hour', 0) }} [l/h]</p>
+                        <p>doba (24h): {{ results.get('oil_day', 0) }} [l/d]</p>
+                        <p>rok ({{ '180d' if choice == 'CO' else '365d' }}): {{ results.get('oil_year', 0) }} [l/r]</p>
+                    </div>
+                    <div class="results-column">
+                        <h4>Inne</h4>
+                        <p>godzina: {{ results.get('other_hour', 0) }} [jedn/h]</p>
+                        <p>doba (24h): {{ results.get('other_day', 0) }} [jedn/d]</p>
+                        <p>rok ({{ '180d' if choice == 'CO' else '365d' }}): {{ results.get('other_year', 0) }} [jedn/r]</p>
+                    </div>
+                    <div class="results-column">
+                        <h4>Gaz</h4>
+                        <p>godzina: {{ results.get('gas_hour', 0) }} [m³/h]</p>
+                        <p>doba (24h): {{ results.get('gas_day', 0) }} [m³/d]</p>
+                        <p>rok ({{ '180d' if choice == 'CO' else '365d' }}): {{ results.get('gas_year', 0) }} [m³/r]</p>
+                        <h4>Wartości ciepła</h4>
+                        <p>godzina: {{ results.get('heat_hour', 0) }} [kW/h]</p>
+                        <p>doba (24h): {{ results.get('heat_day', 0) }} [kW/d]</p>
+                        <p>rok ({{ '180d' if choice == 'CO' else '365d' }}): {{ results.get('heat_year', 0) }} [kW/r]</p>
+                    </div>
+                    <div class="results-column">
+                        <h4>Węgiel</h4>
+                        <p>godzina: {{ results.get('coal_hour', 0) }} [kg/h]</p>
+                        <p>doba (24h): {{ results.get('coal_day', 0) }} [kg/d]</p>
+                        <p>rok ({{ '180d' if choice == 'CO' else '365d' }}): {{ results.get('coal_year', 0) }} [kg/r]</p>
+                    </div>
+                    <div class="results-column">
+                        <h4>Drewno</h4>
+                        <p>godzina: {{ results.get('wood_hour', 0) }} [kg/h]</p>
+                        <p>doba (24h): {{ results.get('wood_day', 0) }} [kg/d]</p>
+                        <p>rok ({{ '180d' if choice == 'CO' else '365d' }}): {{ results.get('wood_year', 0) }} [kg/r]</p>
+                    </div>
+                </div>
+            {% endif %}
+        {% endif %}
     {% endif %}
 
     <p>Wybrano: {{ choice }}</p>
