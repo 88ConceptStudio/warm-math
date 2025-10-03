@@ -4,87 +4,32 @@
     <meta charset="UTF-8">
     <title>Kalkulator Wektorowy</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-            text-align: center;
-        }
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-        }
-        .form-group {
-            margin-bottom: 15px;
-        }
-        label {
-            display: inline-block;
-            width: 150px;
-            text-align: right;
-            margin-right: 10px;
-        }
-        input, select {
-            padding: 5px;
-            width: 200px;
-        }
-        button {
-            padding: 10px 20px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: #45a049;
-        }
-        .result {
-            margin-top: 20px;
-            font-weight: bold;
-        }
-        img {
-            margin-top: 20px;
-            max-width: 100%;
-        }
+        body { font-family: Arial, sans-serif; text-align: center; }
+        h1 { color: #333; }
+        form { margin: 20px; }
+        img { max-width: 100%; height: auto; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Kalkulator Wektorowy</h1>
-        <form method="post" action="/">
-            <div class="form-group">
-                <label for="m1">Wektor 1 (m):</label>
-                <input type="number" id="m1" name="m1" required>
-            </div>
-            <div class="form-group">
-                <label for="r1">Wektor 1 (r):</label>
-                <input type="number" id="r1" name="r1" required>
-            </div>
-            <div class="form-group">
-                <label for="m2">Wektor 2 (m):</label>
-                <input type="number" id="m2" name="m2" required>
-            </div>
-            <div class="form-group">
-                <label for="r2">Wektor 2 (r):</label>
-                <input type="number" id="r2" name="r2" required>
-            </div>
-            <div class="form-group">
-                <label for="operation">Operacja:</label>
-                <select id="operation" name="operation">
-                    <option value="Dodawanie">Dodawanie</option>
-                    <option value="Odejmowanie">Odejmowanie</option>
-                    <option value="Mnozenie">Mnożenie</option>
-                    <option value="Dzielenie">Dzielenie</option>
-                </select>
-            </div>
-            <button type="submit">Oblicz</button>
-        </form>
-        {% if result %}
-        <div class="result">
-            Wynik: {{ result }}
-        </div>
-        {% endif %}
-        {% if plot_url %}
+    <h1>Kalkulator Wektorowy</h1>
+    <form method="post">
+        Wektor 1 (m1, r1): <input type="number" name="m1" value="0">, <input type="number" name="r1" value="0"><br><br>
+        Wektor 2 (m2, r2): <input type="number" name="m2" value="0">, <input type="number" name="r2" value="0"><br><br>
+        Operacja: 
+        <select name="operation">
+            <option value="add">Dodawanie</option>
+            <option value="mul">Mnożenie</option>
+            <option value="div">Dzielenie</option>
+            <option value="sub">Odejmowanie</option>
+        </select><br><br>
+        <input type="submit" value="Oblicz">
+    </form>
+    {% if result %}
+        <h2>Wynik: {{ result }}</h2>
+    {% endif %}
+    {% if plot_url %}
+        <h2>Wykres wektorów:</h2>
         <img src="{{ plot_url }}" alt="Wykres wektorów">
-        {% endif %}
-    </div>
+    {% endif %}
 </body>
 </html>
