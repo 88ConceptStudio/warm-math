@@ -21,18 +21,22 @@ def index():
     show_calc_form = False
 
     if request.method == 'POST':
-        print("Request form data:", dict(request.form))  # Debugowanie
+        print("=== Start POST request ===")
+        print("Request form data:", dict(request.form))
+
         if 'reset' in request.form:
             print("Reset triggered")
             return render_template('index.html', choice=None, co_data={}, cwu_data={}, calc_data={}, results={}, error=None, show_calc_form=False)
 
         choice = request.form.get('choice')
+        print("Selected choice:", choice)
         if not choice:
             error = "Proszę wybrać typ (CO lub CWU)."
             print("Error: No choice selected")
             return render_template('index.html', choice=None, co_data={}, cwu_data={}, calc_data={}, results={}, error=error, show_calc_form=False)
 
         if choice == 'CO':
+            print("Processing CO form")
             try:
                 # Pobieranie danych z formularza lub _prev
                 m2 = request.form.get('m2') or request.form.get('m2_prev')
@@ -42,7 +46,7 @@ def index():
                 t_in = request.form.get('t_in') or request.form.get('t_in_prev')
                 building_type = request.form.get('building_type') or request.form.get('building_type_prev')
 
-                print("CO raw data:", {'m2': m2, 'h': h, 'm3': m3, 't_out': t_out, 't_in': t_in, 'building_type': building_type})  # Debugowanie
+                print("CO raw data:", {'m2': m2, 'h': h, 'm3': m3, 't_out': t_out, 't_in': t_in, 'building_type': building_type})
 
                 # Konwersja i walidacja
                 try:
@@ -51,9 +55,9 @@ def index():
                     m3 = float(m3) if m3 and m3.strip() else None
                     t_out = float(t_out) if t_out and t_out.strip() else None
                     t_in = float(t_in) if t_in and t_in.strip() else None
-                except (ValueError, TypeError):
-                    error = "Proszę wprowadzić prawidłowe wartości liczbowe dla CO."
-                    print("Error: Invalid numeric values for CO")
+                except (ValueError, TypeError) as e:
+                    error = f"Proszę wprowadzić prawidłowe wartości liczbowe dla CO: {str(e)}"
+                    print(f"Error: Invalid numeric values for CO: {str(e)}")
                     return render_template('index.html', choice=choice, co_data={}, cwu_data={}, calc_data={}, results={}, error=error, show_calc_form=False)
 
                 if not building_type:
@@ -69,9 +73,17 @@ def index():
                 elif h and m3 and not m2:
                     m2 = m3 / h if h != 0 else None
 
+                print("CO after calculations:", {'m2': m2, 'h': h, 'm3': m3, 't_out': t_out, 't_in': t_in, 'building_type': building_type})
+
                 if not all([m2, h, m3, t_out, t_in, building_type]):
-                    error = "Proszę wypełnić wszystkie pola dla CO."
-                    print("Error: Incomplete CO data")
+                    error = f"Proszę wypełnić wszystkie pola dla CO. Brakujące: {', '.join([k for k, v in {'m2': m2, 'h': h, 'm3': m3, 't_out': t_out, 't_in': t_in, 'building_type': building_type}.items() if not v])}"
+                    print(f"Error: Incomplete CO data: {error}")
+                    return render_template('index.html', choice=choice, co_data={}, cwu_data={}, calc_data={}, results={}, error=error, show_calc_form=False)
+
+                # Walidacja temperatur
+                if t_in <= t_out:
+                    error = f"Temperatura wewnętrzna (Temp-IN: {t_in}°C) musi być wyższa niż zewnętrzna (Temp-OUT: {t_out}°C) dla CO."
+                    print(f"Error: Invalid temperature for CO: t_in ({t_in}) <= t_out ({t_out})")
                     return render_template('index.html', choice=choice, co_data={}, cwu_data={}, calc_data={}, results={}, error=error, show_calc_form=False)
 
                 co_data = {
@@ -82,7 +94,7 @@ def index():
                     't_in': t_in,
                     'building_type': building_type
                 }
-                print("CO validated data:", co_data)  # Debugowanie
+                print("CO validated data:", co_data)
 
                 # Przejście do formularza wskaźników
                 if 'kw_m3' not in request.form and 'print' not in request.form:
@@ -95,19 +107,20 @@ def index():
                 return render_template('index.html', choice=choice, co_data={}, cwu_data={}, calc_data={}, results={}, error=error, show_calc_form=False)
 
         elif choice == 'CWU':
+            print("Processing CWU form")
             try:
                 people = request.form.get('people') or request.form.get('people_prev')
                 t_wu = request.form.get('t_wu') or request.form.get('t_wu_prev')
                 building_type = request.form.get('building_type') or request.form.get('building_type_prev')
 
-                print("CWU raw data:", {'people': people, 't_wu': t_wu, 'building_type': building_type})  # Debugowanie
+                print("CWU raw data:", {'people': people, 't_wu': t_wu, 'building_type': building_type})
 
                 try:
                     people = int(people) if people and people.strip() else None
                     t_wu = float(t_wu) if t_wu and t_wu.strip() else None
-                except (ValueError, TypeError):
-                    error = "Proszę wprowadzić prawidłowe wartości liczbowe dla CWU."
-                    print("Error: Invalid numeric values for CWU")
+                except (ValueError, TypeError) as e:
+                    error = f"Proszę wprowadzić prawidłowe wartości liczbowe dla CWU: {str(e)}"
+                    print(f"Error: Invalid numeric values for CWU: {str(e)}")
                     return render_template('index.html', choice=choice, co_data={}, cwu_data={}, calc_data={}, results={}, error=error, show_calc_form=False)
 
                 if not building_type:
@@ -116,8 +129,14 @@ def index():
                     return render_template('index.html', choice=choice, co_data={}, cwu_data={}, calc_data={}, results={}, error=error, show_calc_form=False)
 
                 if not all([people, t_wu, building_type]):
-                    error = "Proszę wypełnić wszystkie pola dla CWU."
-                    print("Error: Incomplete CWU data")
+                    error = f"Proszę wypełnić wszystkie pola dla CWU. Brakujące: {', '.join([k for k, v in {'people': people, 't_wu': t_wu, 'building_type': building_type}.items() if not v])}"
+                    print(f"Error: Incomplete CWU data: {error}")
+                    return render_template('index.html', choice=choice, co_data={}, cwu_data={}, calc_data={}, results={}, error=error, show_calc_form=False)
+
+                # Walidacja temperatury wody użytkowej
+                if t_wu <= 10:
+                    error = f"Temperatura wody użytkowej (Temp-WU: {t_wu}°C) musi być wyższa niż 10°C dla CWU."
+                    print(f"Error: Invalid temperature for CWU: t_wu ({t_wu}) <= 10")
                     return render_template('index.html', choice=choice, co_data={}, cwu_data={}, calc_data={}, results={}, error=error, show_calc_form=False)
 
                 cwu_data = {
@@ -125,7 +144,7 @@ def index():
                     't_wu': t_wu,
                     'building_type': building_type
                 }
-                print("CWU validated data:", cwu_data)  # Debugowanie
+                print("CWU validated data:", cwu_data)
 
                 if 'kw_m3' not in request.form and 'print' not in request.form:
                     print("Showing calc form for CWU")
@@ -137,6 +156,7 @@ def index():
                 return render_template('index.html', choice=choice, co_data={}, cwu_data={}, calc_data={}, results={}, error=error, show_calc_form=False)
 
         if 'kw_m3' in request.form or 'print' in request.form:
+            print("Processing calculations")
             try:
                 calc_data = {
                     'kw_m3': float(request.form.get('kw_m3', 10.5)),
@@ -147,7 +167,7 @@ def index():
                     'efficiency': float(request.form.get('efficiency', 100)) / 100,
                     'simultaneity': float(request.form.get('simultaneity', 1))
                 }
-                print("Calc data:", calc_data)  # Debugowanie
+                print("Calc data:", calc_data)
 
                 if choice == 'CO':
                     building_factors = {
@@ -158,16 +178,20 @@ def index():
                         'Obiekt': 100
                     }
                     if not all(key in co_data for key in ['m2', 'building_type', 't_in', 't_out']):
-                        raise ValueError("Brakujące dane CO dla obliczeń.")
+                        error = "Brakujące dane CO dla obliczeń."
+                        print(f"Error: Missing CO data: {co_data}")
+                        raise ValueError(error)
                     q = (co_data['m2'] * building_factors[co_data['building_type']] * (co_data['t_in'] - co_data['t_out'])) / 1000
                     q = q * calc_data['simultaneity'] / calc_data['efficiency']
                 elif choice == 'CWU':
                     if not all(key in cwu_data for key in ['people', 't_wu']):
-                        raise ValueError("Brakujące dane CWU dla obliczeń.")
+                        error = "Brakujące dane CWU dla obliczeń."
+                        print(f"Error: Missing CWU data: {cwu_data}")
+                        raise ValueError(error)
                     q = (cwu_data['people'] * 50 * (cwu_data['t_wu'] - 10) * 4.19) / (3600 * 1000)
                     q = q / calc_data['efficiency']
 
-                print("Calculated q:", q)  # Debugowanie
+                print("Calculated q:", q)
                 results = {
                     'heat_hour': round(q, 2),
                     'heat_day': round(q * 24, 2),
@@ -188,9 +212,10 @@ def index():
                     'other_day': round((q * 24 * 3600) / (calc_data['other_mj'] * 1000), 2) if calc_data['other_mj'] > 0 else 0,
                     'other_year': round((q * 24 * (180 if choice == 'CO' else 365) * 3600) / (calc_data['other_mj'] * 1000), 2) if calc_data['other_mj'] > 0 else 0
                 }
-                print("Results:", results)  # Debugowanie
+                print("Results:", results)
 
                 if 'print' in request.form:
+                    print("Generating PDF")
                     buffer = io.BytesIO()
                     p = canvas.Canvas(buffer, pagesize=A4)
                     p.setFont('DejaVuSans', 12)
@@ -282,6 +307,7 @@ def index():
                 print(f"Error in calculations: {error}")
                 return render_template('index.html', choice=choice, co_data=co_data, cwu_data=cwu_data, calc_data={}, results={}, error=error, show_calc_form=True)
 
+    print("Rendering initial page")
     return render_template('index.html', choice=choice, co_data=co_data, cwu_data=cwu_data, calc_data=calc_data, results=results, error=error, show_calc_form=show_calc_form)
 
 if __name__ == '__main__':
