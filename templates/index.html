@@ -36,7 +36,7 @@
             border: 2px solid #000; 
             margin: 10px; 
         }
-        .results-container, .fuel-values-container {
+        .results-container {
             display: flex;
             justify-content: center;
             gap: 20px;
@@ -44,7 +44,7 @@
             flex-wrap: nowrap;
             width: 100%;
         }
-        .results-column, .fuel-values-column {
+        .results-column {
             flex: 1;
             width: 20%;
             min-width: 160px;
@@ -52,18 +52,29 @@
             box-sizing: border-box;
             padding: 10px;
         }
-        .results-column h4, .fuel-values-column h4 {
+        .results-column h4 {
             font-size: 26px;
             margin-bottom: 12px;
         }
-        .results-column p, .fuel-values-column p {
+        .results-column .result-item, .results-column p, .results-column li {
             font-size: 24px;
             margin: 8px 0;
+        }
+        .result-item div {
+            display: block;
+            margin-bottom: 4px;
+        }
+        .result-item .value {
+            font-weight: bold;
         }
         .error {
             color: red;
             font-size: 22px;
             margin-top: 10px;
+        }
+        ul.no-bullets {
+            list-style: none;
+            padding-left: 0;
         }
     </style>
 </head>
@@ -232,37 +243,19 @@
 
     {% if choice == 'CO' and co_data.get('m2') %}
         <h3>CO - założenia</h3>
-        <p>Powierzchnia: {{ co_data.get('m2') }} [m²]</p>
-        <p>Wysokość: {{ co_data.get('h') }} [m]</p>
-        <p>Kubatura: {{ co_data.get('m3') }} [m³]</p>
-        <p>Temp-OUT: {{ co_data.get('t_out') }} [°C]</p>
-        <p>Temp-IN: {{ co_data.get('t_in') }} [°C]</p>
-        <p>Typ budynku: {{ co_data.get('building_type') }}</p>
+        <ul class="no-bullets">
+            <li>Powierzchnia: {{ co_data.get('m2') }} [m²]</li>
+            <li>Wysokość: {{ co_data.get('h') }} [m]</li>
+            <li>Kubatura: {{ co_data.get('m3') }} [m³]</li>
+            <li>Temp-OUT: {{ co_data.get('t_out') }} [°C]</li>
+            <li>Temp-IN: {{ co_data.get('t_in') }} [°C]</li>
+            <li>Typ budynku: {{ co_data.get('building_type') }}</li>
+        </ul>
         {% if calc_data.get('kw_m3') %}
-            <div class="fuel-values-container">
-                <div class="fuel-values-column">
-                    <h4>Olej</h4>
-                    <p>Wartość opałowa: {{ calc_data.get('oil_mj_l') }} [MJ/l]</p>
-                </div>
-                <div class="fuel-values-column">
-                    <h4>Inne</h4>
-                    <p>Wartość opałowa: {{ calc_data.get('other_mj') }} [MJ]</p>
-                </div>
-                <div class="fuel-values-column">
-                    <h4>Gaz</h4>
-                    <p>Wartość opałowa: {{ calc_data.get('kw_m3') }} [kW/m³]</p>
-                </div>
-                <div class="fuel-values-column">
-                    <h4>Węgiel</h4>
-                    <p>Wartość opałowa: {{ calc_data.get('coal_mj_kg') }} [MJ/kg]</p>
-                </div>
-                <div class="fuel-values-column">
-                    <h4>Drewno</h4>
-                    <p>Wartość opałowa: {{ calc_data.get('wood_mj_kg') }} [MJ/kg]</p>
-                </div>
-            </div>
-            <p>Sprawność kotła: {{ calc_data.get('efficiency')|float * 100 }} [%]</p>
-            <p>Jednoczesność: {{ calc_data.get('simultaneity') }}</p>
+            <ul class="no-bullets">
+                <li>Sprawność kotła: {{ calc_data.get('efficiency')|float * 100 }} [%]</li>
+                <li>Jednoczesność: {{ calc_data.get('simultaneity') }}</li>
+            </ul>
             {% if results.get('heat_hour') is not none %}
                 <form method="POST">
                     <input type="hidden" name="choice" value="{{ choice }}">
@@ -303,37 +296,96 @@
                 <div class="results-container">
                     <div class="results-column">
                         <h4>Olej</h4>
-                        <p>godzina: {{ results.get('oil_hour') }} [l/h]</p>
-                        <p>doba (24h): {{ results.get('oil_day') }} [l/d]</p>
-                        <p>rok ({{ '180d' if choice == 'CO' else '365d' }}): {{ results.get('oil_year') }} [l/r]</p>
+                        <p>Wartość opałowa: {{ calc_data.get('oil_mj_l') }} [MJ/l]</p>
+                        <div class="result-item">
+                            <div>godzina [l/h]</div>
+                            <div class="value">{{ results.get('oil_hour') }}</div>
+                        </div>
+                        <div class="result-item">
+                            <div>doba (24h) [l/d]</div>
+                            <div class="value">{{ results.get('oil_day') }}</div>
+                        </div>
+                        <div class="result-item">
+                            <div>rok (180d) [l/r]</div>
+                            <div class="value">{{ results.get('oil_year') }}</div>
+                        </div>
                     </div>
                     <div class="results-column">
                         <h4>Inne</h4>
-                        <p>godzina: {{ results.get('other_hour') }} [jedn/h]</p>
-                        <p>doba (24h): {{ results.get('other_day') }} [jedn/d]</p>
-                        <p>rok ({{ '180d' if choice == 'CO' else '365d' }}): {{ results.get('other_year') }} [jedn/r]</p>
+                        <p>Wartość opałowa: {{ calc_data.get('other_mj') }} [MJ]</p>
+                        <div class="result-item">
+                            <div>godzina [jedn/h]</div>
+                            <div class="value">{{ results.get('other_hour') }}</div>
+                        </div>
+                        <div class="result-item">
+                            <div>doba (24h) [jedn/d]</div>
+                            <div class="value">{{ results.get('other_day') }}</div>
+                        </div>
+                        <div class="result-item">
+                            <div>rok (180d) [jedn/r]</div>
+                            <div class="value">{{ results.get('other_year') }}</div>
+                        </div>
                     </div>
                     <div class="results-column">
                         <h4>Gaz</h4>
-                        <p>godzina: {{ results.get('gas_hour') }} [m³/h]</p>
-                        <p>doba (24h): {{ results.get('gas_day') }} [m³/d]</p>
-                        <p>rok ({{ '180d' if choice == 'CO' else '365d' }}): {{ results.get('gas_year') }} [m³/r]</p>
+                        <p>Wartość opałowa: {{ calc_data.get('kw_m3') }} [kW/m³]</p>
+                        <div class="result-item">
+                            <div>godzina [m³/h]</div>
+                            <div class="value">{{ results.get('gas_hour') }}</div>
+                        </div>
+                        <div class="result-item">
+                            <div>doba (24h) [m³/d]</div>
+                            <div class="value">{{ results.get('gas_day') }}</div>
+                        </div>
+                        <div class="result-item">
+                            <div>rok (180d) [m³/r]</div>
+                            <div class="value">{{ results.get('gas_year') }}</div>
+                        </div>
                         <h4>Wartości ciepła</h4>
-                        <p>godzina: {{ results.get('heat_hour') }} [kW/h]</p>
-                        <p>doba (24h): {{ results.get('heat_day') }} [kW/d]</p>
-                        <p>rok ({{ '180d' if choice == 'CO' else '365d' }}): {{ results.get('heat_year') }} [kW/r]</p>
+                        <div class="result-item">
+                            <div>godzina [kW/h]</div>
+                            <div class="value">{{ results.get('heat_hour') }}</div>
+                        </div>
+                        <div class="result-item">
+                            <div>doba (24h) [kW/d]</div>
+                            <div class="value">{{ results.get('heat_day') }}</div>
+                        </div>
+                        <div class="result-item">
+                            <div>rok (180d) [kW/r]</div>
+                            <div class="value">{{ results.get('heat_year') }}</div>
+                        </div>
                     </div>
                     <div class="results-column">
                         <h4>Węgiel</h4>
-                        <p>godzina: {{ results.get('coal_hour') }} [kg/h]</p>
-                        <p>doba (24h): {{ results.get('coal_day') }} [kg/d]</p>
-                        <p>rok ({{ '180d' if choice == 'CO' else '365d' }}): {{ results.get('coal_year') }} [kg/r]</p>
+                        <p>Wartość opałowa: {{ calc_data.get('coal_mj_kg') }} [MJ/kg]</p>
+                        <div class="result-item">
+                            <div>godzina [kg/h]</div>
+                            <div class="value">{{ results.get('coal_hour') }}</div>
+                        </div>
+                        <div class="result-item">
+                            <div>doba (24h) [kg/d]</div>
+                            <div class="value">{{ results.get('coal_day') }}</div>
+                        </div>
+                        <div class="result-item">
+                            <div>rok (180d) [kg/r]</div>
+                            <div class="value">{{ results.get('coal_year') }}</div>
+                        </div>
                     </div>
                     <div class="results-column">
                         <h4>Drewno</h4>
-                        <p>godzina: {{ results.get('wood_hour') }} [kg/h]</p>
-                        <p>doba (24h): {{ results.get('wood_day') }} [kg/d]</p>
-                        <p>rok ({{ '180d' if choice == 'CO' else '365d' }}): {{ results.get('wood_year') }} [kg/r]</p>
+                        <p>Wartość opałowa: {{ calc_data.get('wood_mj_kg') }} [MJ/kg]</p>
+                        <div class="result-item">
+                            <div>godzina [kg/h]</div>
+                            <div class="value">{{ results.get('wood_hour') }}</div>
+                        </div>
+                        <div class="result-item">
+                            <div>doba (24h) [kg/d]</div>
+                            <div class="value">{{ results.get('wood_day') }}</div>
+                        </div>
+                        <div class="result-item">
+                            <div>rok (180d) [kg/r]</div>
+                            <div class="value">{{ results.get('wood_year') }}</div>
+                        </div>
                     </div>
                 </div>
             {% endif %}
@@ -342,34 +394,16 @@
 
     {% if choice == 'CWU' and cwu_data.get('people') %}
         <h3>CWU - założenia</h3>
-        <p>Liczba osób: {{ cwu_data.get('people') }}</p>
-        <p>Temp-WU: {{ cwu_data.get('t_wu') }} [°C]</p>
-        <p>Typ budynku: {{ cwu_data.get('building_type') }}</p>
+        <ul class="no-bullets">
+            <li>Liczba osób: {{ cwu_data.get('people') }}</li>
+            <li>Temp-WU: {{ cwu_data.get('t_wu') }} [°C]</li>
+            <li>Typ budynku: {{ cwu_data.get('building_type') }}</li>
+        </ul>
         {% if calc_data.get('kw_m3') %}
-            <div class="fuel-values-container">
-                <div class="fuel-values-column">
-                    <h4>Olej</h4>
-                    <p>Wartość opałowa: {{ calc_data.get('oil_mj_l') }} [MJ/l]</p>
-                </div>
-                <div class="fuel-values-column">
-                    <h4>Inne</h4>
-                    <p>Wartość opałowa: {{ calc_data.get('other_mj') }} [MJ]</p>
-                </div>
-                <div class="fuel-values-column">
-                    <h4>Gaz</h4>
-                    <p>Wartość opałowa: {{ calc_data.get('kw_m3') }} [kW/m³]</p>
-                </div>
-                <div class="fuel-values-column">
-                    <h4>Węgiel</h4>
-                    <p>Wartość opałowa: {{ calc_data.get('coal_mj_kg') }} [MJ/kg]</p>
-                </div>
-                <div class="fuel-values-column">
-                    <h4>Drewno</h4>
-                    <p>Wartość opałowa: {{ calc_data.get('wood_mj_kg') }} [MJ/kg]</p>
-                </div>
-            </div>
-            <p>Sprawność kotła: {{ calc_data.get('efficiency')|float * 100 }} [%]</p>
-            <p>Jednoczesność: {{ calc_data.get('simultaneity') }}</p>
+            <ul class="no-bullets">
+                <li>Sprawność kotła: {{ calc_data.get('efficiency')|float * 100 }} [%]</li>
+                <li>Jednoczesność: {{ calc_data.get('simultaneity') }}</li>
+            </ul>
             {% if results.get('heat_hour') is not none %}
                 <form method="POST">
                     <input type="hidden" name="choice" value="{{ choice }}">
@@ -407,37 +441,96 @@
                 <div class="results-container">
                     <div class="results-column">
                         <h4>Olej</h4>
-                        <p>godzina: {{ results.get('oil_hour') }} [l/h]</p>
-                        <p>doba (24h): {{ results.get('oil_day') }} [l/d]</p>
-                        <p>rok ({{ '180d' if choice == 'CO' else '365d' }}): {{ results.get('oil_year') }} [l/r]</p>
+                        <p>Wartość opałowa: {{ calc_data.get('oil_mj_l') }} [MJ/l]</p>
+                        <div class="result-item">
+                            <div>godzina [l/h]</div>
+                            <div class="value">{{ results.get('oil_hour') }}</div>
+                        </div>
+                        <div class="result-item">
+                            <div>doba (24h) [l/d]</div>
+                            <div class="value">{{ results.get('oil_day') }}</div>
+                        </div>
+                        <div class="result-item">
+                            <div>rok (365d) [l/r]</div>
+                            <div class="value">{{ results.get('oil_year') }}</div>
+                        </div>
                     </div>
                     <div class="results-column">
                         <h4>Inne</h4>
-                        <p>godzina: {{ results.get('other_hour') }} [jedn/h]</p>
-                        <p>doba (24h): {{ results.get('other_day') }} [jedn/d]</p>
-                        <p>rok ({{ '180d' if choice == 'CO' else '365d' }}): {{ results.get('other_year') }} [jedn/r]</p>
+                        <p>Wartość opałowa: {{ calc_data.get('other_mj') }} [MJ]</p>
+                        <div class="result-item">
+                            <div>godzina [jedn/h]</div>
+                            <div class="value">{{ results.get('other_hour') }}</div>
+                        </div>
+                        <div class="result-item">
+                            <div>doba (24h) [jedn/d]</div>
+                            <div class="value">{{ results.get('other_day') }}</div>
+                        </div>
+                        <div class="result-item">
+                            <div>rok (365d) [jedn/r]</div>
+                            <div class="value">{{ results.get('other_year') }}</div>
+                        </div>
                     </div>
                     <div class="results-column">
                         <h4>Gaz</h4>
-                        <p>godzina: {{ results.get('gas_hour') }} [m³/h]</p>
-                        <p>doba (24h): {{ results.get('gas_day') }} [m³/d]</p>
-                        <p>rok ({{ '180d' if choice == 'CO' else '365d' }}): {{ results.get('gas_year') }} [m³/r]</p>
+                        <p>Wartość opałowa: {{ calc_data.get('kw_m3') }} [kW/m³]</p>
+                        <div class="result-item">
+                            <div>godzina [m³/h]</div>
+                            <div class="value">{{ results.get('gas_hour') }}</div>
+                        </div>
+                        <div class="result-item">
+                            <div>doba (24h) [m³/d]</div>
+                            <div class="value">{{ results.get('gas_day') }}</div>
+                        </div>
+                        <div class="result-item">
+                            <div>rok (365d) [m³/r]</div>
+                            <div class="value">{{ results.get('gas_year') }}</div>
+                        </div>
                         <h4>Wartości ciepła</h4>
-                        <p>godzina: {{ results.get('heat_hour') }} [kW/h]</p>
-                        <p>doba (24h): {{ results.get('heat_day') }} [kW/d]</p>
-                        <p>rok ({{ '180d' if choice == 'CO' else '365d' }}): {{ results.get('heat_year') }} [kW/r]</p>
+                        <div class="result-item">
+                            <div>godzina [kW/h]</div>
+                            <div class="value">{{ results.get('heat_hour') }}</div>
+                        </div>
+                        <div class="result-item">
+                            <div>doba (24h) [kW/d]</div>
+                            <div class="value">{{ results.get('heat_day') }}</div>
+                        </div>
+                        <div class="result-item">
+                            <div>rok (365d) [kW/r]</div>
+                            <div class="value">{{ results.get('heat_year') }}</div>
+                        </div>
                     </div>
                     <div class="results-column">
                         <h4>Węgiel</h4>
-                        <p>godzina: {{ results.get('coal_hour') }} [kg/h]</p>
-                        <p>doba (24h): {{ results.get('coal_day') }} [kg/d]</p>
-                        <p>rok ({{ '180d' if choice == 'CO' else '365d' }}): {{ results.get('coal_year') }} [kg/r]</p>
+                        <p>Wartość opałowa: {{ calc_data.get('coal_mj_kg') }} [MJ/kg]</p>
+                        <div class="result-item">
+                            <div>godzina [kg/h]</div>
+                            <div class="value">{{ results.get('coal_hour') }}</div>
+                        </div>
+                        <div class="result-item">
+                            <div>doba (24h) [kg/d]</div>
+                            <div class="value">{{ results.get('coal_day') }}</div>
+                        </div>
+                        <div class="result-item">
+                            <div>rok (365d) [kg/r]</div>
+                            <div class="value">{{ results.get('coal_year') }}</div>
+                        </div>
                     </div>
                     <div class="results-column">
                         <h4>Drewno</h4>
-                        <p>godzina: {{ results.get('wood_hour') }} [kg/h]</p>
-                        <p>doba (24h): {{ results.get('wood_day') }} [kg/d]</p>
-                        <p>rok ({{ '180d' if choice == 'CO' else '365d' }}): {{ results.get('wood_year') }} [kg/r]</p>
+                        <p>Wartość opałowa: {{ calc_data.get('wood_mj_kg') }} [MJ/kg]</p>
+                        <div class="result-item">
+                            <div>godzina [kg/h]</div>
+                            <div class="value">{{ results.get('wood_hour') }}</div>
+                        </div>
+                        <div class="result-item">
+                            <div>doba (24h) [kg/d]</div>
+                            <div class="value">{{ results.get('wood_day') }}</div>
+                        </div>
+                        <div class="result-item">
+                            <div>rok (365d) [kg/r]</div>
+                            <div class="value">{{ results.get('wood_year') }}</div>
+                        </div>
                     </div>
                 </div>
             {% endif %}
