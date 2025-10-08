@@ -1,9 +1,10 @@
 <!DOCTYPE html>
-<html>
+<html lang="pl">
 <head>
-    <title>WARM-MATH</title>
-    <link href="https://fonts.googleapis.com/css2?family=Questrial&display=swap" rel="stylesheet">
+    <meta charset="UTF-8">
+    <title>Kalkulator Wektorowy</title>
     <style>
+<<<<<<< HEAD
         body { 
             font-family: 'Questrial', sans-serif; 
             text-align: center; 
@@ -76,120 +77,36 @@
             list-style: none;
             padding-left: 0;
         }
+=======
+        body { font-family: Arial, sans-serif; text-align: center; }
+        h1 { color: #333; }
+        form { margin: 20px; }
+        img { max-width: 100%; height: auto; }
+>>>>>>> 07498975d3d5961b702f63a9b0086d8dce4e36fb
     </style>
 </head>
 <body>
-    <h1>WARM-MATH</h1>
-    {% if error %}
-        <p class="error">{{ error }}</p>
-    {% endif %}
-    <form method="POST">
-        <div class="form-group">
-            <label>Typ:</label>
-            <select name="choice">
-                <option value="">Wybierz...</option>
-                <option value="CO" {% if choice == 'CO' %}selected{% endif %}>CO</option>
-                <option value="CWU" {% if choice == 'CWU' %}selected{% endif %}>CWU</option>
-            </select>
-        </div>
-        <input type="submit" value="Dalej">
-        <input type="submit" name="reset" value="Nowe">
+    <h1>Kalkulator Wektorowy</h1>
+    <form method="post">
+        Wektor 1 (m1, r1): <input type="number" name="m1" value="0">, <input type="number" name="r1" value="0"><br><br>
+        Wektor 2 (m2, r2): <input type="number" name="m2" value="0">, <input type="number" name="r2" value="0"><br><br>
+        Operacja: 
+        <select name="operation">
+            <option value="add">Dodawanie</option>
+            <option value="mul">Mnożenie</option>
+            <option value="div">Dzielenie</option>
+            <option value="sub">Odejmowanie</option>
+        </select><br><br>
+        <input type="submit" value="Oblicz">
     </form>
-
-    {% if choice == 'CO' and not show_calc_form %}
-        <h2>CO - założenia</h2>
-        <form method="POST">
-            <input type="hidden" name="choice" value="CO">
-            <div class="form-group">
-                <label>Powierzchnia [m²]:</label>
-                <input type="number" name="m2" step="any" placeholder="np. 100" id="m2" value="{{ co_data.get('m2', '') }}">
-            </div>
-            <div class="form-group">
-                <label>Wysokość [m]:</label>
-                <input type="number" name="h" step="any" placeholder="np. 3" id="h" value="{{ co_data.get('h', '') }}">
-            </div>
-            <div class="form-group">
-                <label>Kubatura [m³]:</label>
-                <input type="number" name="m3" step="any" placeholder="np. 300" id="m3" value="{{ co_data.get('m3', '') }}">
-            </div>
-            <div class="form-group">
-                <label>Temp-OUT [°C]:</label>
-                <input type="number" name="t_out" step="any" placeholder="np. -20" value="{{ co_data.get('t_out', '') }}">
-            </div>
-            <div class="form-group">
-                <label>Temp-IN [°C]:</label>
-                <input type="number" name="t_in" step="any" placeholder="np. 20" value="{{ co_data.get('t_in', '') }}">
-            </div>
-            <div class="form-group">
-                <label>Typ budynku:</label>
-                <select name="building_type">
-                    <option value="">Wybierz...</option>
-                    <option value="Mieszkanie" {% if co_data.get('building_type') == 'Mieszkanie' %}selected{% endif %}>Mieszkanie</option>
-                    <option value="Dom" {% if co_data.get('building_type') == 'Dom' %}selected{% endif %}>Dom</option>
-                    <option value="Magazyn" {% if co_data.get('building_type') == 'Magazyn' %}selected{% endif %}>Magazyn</option>
-                    <option value="Biurowiec" {% if co_data.get('building_type') == 'Biurowiec' %}selected{% endif %}>Biurowiec</option>
-                    <option value="Obiekt" {% if co_data.get('building_type') == 'Obiekt' %}selected{% endif %}>Obiekt</option>
-                </select>
-            </div>
-            <input type="submit" value="Wyślij">
-            <input type="submit" name="reset" value="Nowe">
-        </form>
-        <script>
-            const m2Input = document.querySelector('#m2');
-            const hInput = document.querySelector('#h');
-            const m3Input = document.querySelector('#m3');
-
-            m2Input.addEventListener('input', updateFields);
-            hInput.addEventListener('input', updateFields);
-            m3Input.addEventListener('input', updateFields);
-
-            function updateFields() {
-                let m2 = parseFloat(m2Input.value) || 0;
-                let h = parseFloat(hInput.value) || 0;
-                let m3 = parseFloat(m3Input.value) || 0;
-
-                let filledCount = [m2, h, m3].filter(val => val > 0).length;
-
-                if (filledCount === 2) {
-                    if (m2 && h && !m3Input.value) {
-                        m3Input.value = (m2 * h).toFixed(2);
-                    } else if (m2 && m3 && !hInput.value) {
-                        hInput.value = m2 ? (m3 / m2).toFixed(2) : '';
-                    } else if (h && m3 && !m2Input.value) {
-                        m2Input.value = h ? (m3 / h).toFixed(2) : '';
-                    }
-                }
-            }
-        </script>
+    {% if result %}
+        <h2>Wynik: {{ result }}</h2>
     {% endif %}
-
-    {% if choice == 'CWU' and not show_calc_form %}
-        <h2>CWU - założenia</h2>
-        <form method="POST">
-            <input type="hidden" name="choice" value="CWU">
-            <div class="form-group">
-                <label>Liczba osób:</label>
-                <input type="number" name="people" step="1" placeholder="np. 4" value="{{ cwu_data.get('people', '') }}">
-            </div>
-            <div class="form-group">
-                <label>Temp-WU [°C]:</label>
-                <input type="number" name="t_wu" step="any" placeholder="np. 40" value="{{ cwu_data.get('t_wu', '') }}">
-            </div>
-            <div class="form-group">
-                <label>Typ budynku:</label>
-                <select name="building_type">
-                    <option value="">Wybierz...</option>
-                    <option value="Mieszkanie" {% if cwu_data.get('building_type') == 'Mieszkanie' %}selected{% endif %}>Mieszkanie</option>
-                    <option value="Dom" {% if cwu_data.get('building_type') == 'Dom' %}selected{% endif %}>Dom</option>
-                    <option value="Magazyn" {% if cwu_data.get('building_type') == 'Magazyn' %}selected{% endif %}>Magazyn</option>
-                    <option value="Biurowiec" {% if cwu_data.get('building_type') == 'Biurowiec' %}selected{% endif %}>Biurowiec</option>
-                    <option value="Obiekt" {% if cwu_data.get('building_type') == 'Obiekt' %}selected{% endif %}>Obiekt</option>
-                </select>
-            </div>
-            <input type="submit" value="Wyślij">
-            <input type="submit" name="reset" value="Nowe">
-        </form>
+    {% if plot_url %}
+        <h2>Wykres wektorów:</h2>
+        <img src="{{ plot_url }}" alt="Wykres wektorów">
     {% endif %}
+<<<<<<< HEAD
 
     {% if show_calc_form %}
         <h2>{{ choice }} - wskaźniki</h2>
@@ -538,5 +455,7 @@
     {% endif %}
 
     <p>Wybrano: {{ choice }}</p>
+=======
+>>>>>>> 07498975d3d5961b702f63a9b0086d8dce4e36fb
 </body>
 </html>
